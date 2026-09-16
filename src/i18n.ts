@@ -79,6 +79,18 @@ const dict = {
     footer: '纯前端计算 · 数据不出浏览器 · SunCalc 天文算法',
     quickNav: '快捷日期',
     presets: '常用地点',
+    // 动态背景
+    skyOn: '天色背景开',
+    skyOff: '天色背景关',
+    skyLock: '锁定时间',
+    skyUnlock: '解锁',
+    skyLockTitle: '锁定时间，拖动滑块预览不同时段的天色',
+    skyOffTitle: '关闭动态天色背景',
+    skyLockSlider: '预览时刻',
+    skyOffLabel: '静态深色',
+    skyClockSource: '天色时钟源',
+    skyClockLocal: '本机时间',
+    skyClockSite: '当地实时',
   },
   en: {
     appName: 'SunTime Explorer',
@@ -152,6 +164,18 @@ const dict = {
     footer: 'Client-side only · No data leaves your browser · SunCalc algorithm',
     quickNav: 'Quick dates',
     presets: 'Presets',
+    // Dynamic sky background
+    skyOn: 'Sky on',
+    skyOff: 'Sky off',
+    skyLock: 'Lock time',
+    skyUnlock: 'Unlock',
+    skyLockTitle: 'Lock time and drag the slider to preview any hour',
+    skyOffTitle: 'Turn off the dynamic sky background',
+    skyLockSlider: 'Preview hour',
+    skyOffLabel: 'Static dark',
+    skyClockSource: 'Sky clock',
+    skyClockLocal: 'My time',
+    skyClockSite: 'Local there',
   },
 } as const;
 

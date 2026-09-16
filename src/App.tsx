@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import MapPicker from './components/MapPicker';
 import ResultCard from './components/ResultCard';
 import YearlyView from './components/YearlyView';
+import SkyBackground from './components/SkyBackground';
 import { makeT, type Lang } from './i18n';
 import { searchPlaces, type Place } from './lib/geocode';
 import { downloadCsv } from './lib/csv';
 import { computeDay, daysInMonth, fmtDuration, fmtIn, fmtLat, fmtLng, fmtOffset, fmtUtc } from './lib/solar';
+import tzlookup from 'tz-lookup';
 
 const PRESETS = [
   { name: '北京', lat: 39.9042, lng: 116.4074 },
@@ -53,6 +55,16 @@ export default function App() {
   const [locating, setLocating] = useState(false);
   const [copied, setCopied] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  // 动态背景：查询地点的 IANA 时区（搜索后生效）；解析失败退回估算时区
+  const siteTz = useMemo(() => {
+    if (!result) return null;
+    try {
+      return tzlookup(result.lat, result.lng);
+    } catch {
+      return null;
+    }
+  }, [result]);
 
   // 首次挂载即查询默认值
   useEffect(() => {
@@ -204,7 +216,8 @@ export default function App() {
   const mapReady = Number.isFinite(latNum) && Number.isFinite(lngNum);
 
   return (
-    <div className="min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_at_top,rgba(56,189,248,0.08),transparent_55%)] text-slate-100">
+    <div className="min-h-screen text-slate-100">
+      <SkyBackground calc={result} tz={siteTz} t={t} />
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
         <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -230,7 +243,7 @@ export default function App() {
         </header>
 
         {/* 查询表单 */}
-        <form onSubmit={onSubmit} className="mb-6 rounded-2xl border border-slate-700/60 bg-slate-900/70 p-4 shadow-xl shadow-black/20 sm:p-6">
+        <form onSubmit={onSubmit} className="mb-6 rounded-2xl border border-slate-700/60 bg-slate-900/70 p-4 shadow-xl shadow-black/20 backdrop-blur-md sm:p-6">
           {/* 地名搜索 */}
           <div className="mb-4">
             <label className="mb-1.5 block text-sm font-medium text-slate-300">{t('placeSearch')}</label>

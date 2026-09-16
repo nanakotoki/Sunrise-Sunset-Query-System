@@ -32,3 +32,47 @@ input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* 星星闪烁 */
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.15);
+  }
+}
+
+/* 动态晨昏背景：注册颜色变量后 background 渐变可被 transition 平滑插值 */
+@property --sky-top {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #050816;
+}
+@property --sky-bottom {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #0b1120;
+}
+
+.sky-bg {
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%);
+  transition:
+    --sky-top 2.5s ease,
+    --sky-bottom 2.5s ease;
+}
+
+/* 页面底色（避免加载瞬间白屏） */
+body {
+  background: #050816;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sun-marker,
+  [style*='twinkle'] {
+    animation: none !important;
+  }
+}

@@ -59,6 +59,8 @@
     hasSvgChart: /chartHint|全年日出日落|Sunrise \/ sunset/.test(stdout),
     hasPresetBtns: stdout.includes('北京') && stdout.includes('Sydney'),
     hasFormInputs: stdout.includes('lat') && stdout.includes('year'),
+    hasSkyBg: stdout.includes('锁定时间') || stdout.includes('Lock time'),
+    hasSkyControls: stdout.includes('skyOff') || stdout.includes('天色背景'),
   };
 
   let failed = 0;
