@@ -1,0 +1,31 @@
+{
+  "name": "suntime-explorer",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "SunTime Explorer — 全球日出日落时间查询网页应用",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:single": "tsc && vite build --config vite.single.config.ts",
+    "preview": "vite preview",
+    "verify:solar": "node scripts/verify-solar.mjs"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "suncalc": "^1.9.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.4",
+    "@types/leaflet": "^1.9.12",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "tailwindcss": "^4.1.4",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.8",
+    "vite-plugin-singlefile": "^2.0.3"
+  }
+}
