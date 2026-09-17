@@ -5,6 +5,7 @@ import YearlyView from './components/YearlyView';
 import SkyBackground from './components/SkyBackground';
 import { makeT, type Lang } from './i18n';
 import { searchPlaces, type Place } from './lib/geocode';
+import { locateByIp } from './lib/iplocate';
 import { downloadCsv } from './lib/csv';
 import { computeDay, daysInMonth, fmtDuration, fmtIn, fmtLat, fmtLng, fmtOffset, fmtUtc } from './lib/solar';
 import tzlookup from 'tz-lookup';
@@ -146,27 +147,20 @@ export default function App() {
     }
   }, [searchQuery, lang, t]);
 
-  // IP 定位回退：不需要权限，但只能精确到城市级
+  // IP 网络定位：多源回退（ipwho.is → ip.sb → ipapi.co），不需要权限，城市级精度
   const onLocateIp = useCallback(async () => {
     setLocating(true);
     setSearchError('');
     try {
-      const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(6000) });
-      if (!res.ok) throw new Error('ipapi fail');
-      const d = (await res.json()) as { latitude?: number; longitude?: number; city?: string; region?: string; country_name?: string };
-      if (typeof d.latitude === 'number' && typeof d.longitude === 'number') {
-        const place = [d.city, d.region, d.country_name].filter(Boolean).join(', ');
-        setSearchQuery(place);
-        setPlace(d.latitude, d.longitude);
-      } else {
-        setSearchError(t('locateUnavailable'));
-      }
+      const loc = await locateByIp();
+      const place = [loc.city, loc.region, loc.country].filter(Boolean).join(', ');
+      if (place) setSearchQuery(place);
+      setPlace(loc.lat, loc.lng);
     } catch {
       setSearchError(t('locateIpFailed'));
+    } finally {
       setLocating(false);
-      return;
     }
-    setLocating(false);
   }, [t]);
 
   const onLocate = () => {
@@ -188,13 +182,17 @@ export default function App() {
       },
       (err) => {
         setLocating(false);
+        let msg: string;
         if (err.code === err.PERMISSION_DENIED) {
-          setSearchError(t('locateDenied'));
+          msg = t('locateDenied');
         } else if (err.code === err.POSITION_UNAVAILABLE || err.code === err.TIMEOUT) {
-          setSearchError(t('locateUnavailable'));
+          msg = t('locateUnavailable');
         } else {
-          setSearchError(t('locateFailed'));
+          msg = t('locateFailed');
         }
+        // GPS 失败不终点：自动降级 IP 定位，城市级精度也能查日出日落
+        setSearchError(msg + ' ' + t('locateFallbackIp'));
+        onLocateIp();
       },
       { timeout: 10000, maximumAge: 300000, enableHighAccuracy: false },
     );
