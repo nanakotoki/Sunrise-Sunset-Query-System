@@ -136,6 +136,8 @@ export default function App() {
         setSearchError(t('noResults'));
       } else {
         setPlaces(found);
+        // 自动应用第一个结果：搜索了就直接查，无需再点下拉项；下拉仍保留供更换
+        setPlace(found[0].lat, found[0].lng);
       }
     } catch (err) {
       if ((err as Error).name !== 'AbortError') setSearchError(t('searchFailed'));
@@ -325,7 +327,9 @@ export default function App() {
             </div>
             {searchError && <p className="mt-1.5 text-xs text-red-400">{searchError}</p>}
             {places.length > 0 && (
-              <ul className="mt-2 divide-y divide-slate-700/60 rounded-xl border border-slate-700/60 bg-slate-800/60">
+              <div className="mt-2">
+                <p className="mb-1 text-xs text-slate-500">{t('searchPickHint')}</p>
+                <ul className="divide-y divide-slate-700/60 rounded-xl border border-slate-700/60 bg-slate-800/60">
                 {places.map((p, i) => (
                   <li key={i}>
                     <button
@@ -341,7 +345,8 @@ export default function App() {
                     </button>
                   </li>
                 ))}
-              </ul>
+                </ul>
+              </div>
             )}
           </div>
 
@@ -476,7 +481,7 @@ export default function App() {
         {/* 结果 */}
         {result && (
           <div className="space-y-6">
-            <ResultCard calc={result} t={t} lang={lang} />
+            <ResultCard calc={result} t={t} lang={lang} tz={siteTz} />
             <div className="flex flex-wrap justify-end gap-2">
               <button
                 onClick={copyResult}

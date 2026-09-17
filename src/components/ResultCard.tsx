@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { DayCalc } from '../lib/solar';
 import { fmtDuration, fmtIn, fmtOffset, fmtUtc } from '../lib/solar';
 import type { Lang, T } from '../i18n';
@@ -6,6 +7,7 @@ interface Props {
   calc: DayCalc;
   t: T;
   lang: Lang;
+  tz?: string | null;
 }
 
 function Row({
@@ -30,8 +32,45 @@ function Row({
   );
 }
 
-/** 单日查询结果卡片（F3–F6, E4）。 */
-export default function ResultCard({ calc, t, lang }: Props) {
+/** 按时区名格式化时间，如 Asia/Shanghai → 21:03:45。解析失败返回 null。 */
+function fmtTzTime(d: Date, tz: string, withDate = false): string | null {
+  try {
+    return new Intl.DateTimeFormat('zh-CN', {
+      timeZone: tz,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+      ...(withDate ? { year: 'numeric', month: '2-digit', day: '2-digit' } : {}),
+    }).format(d);
+  } catch {
+    return null;
+  }
+}
+
+/** 时区名换算为偏移小时数，如 Asia/Shanghai + DST → 8。解析失败返回 null。 */
+function tzOffsetHours(d: Date, tz: string): number | null {
+  try {
+    const dtf = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const parts = dtf.formatToParts(d).reduce<Record<string, string>>((acc, p) => { acc[p.type] = p.value; return acc; }, {});
+    const asUTC = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), Number(parts.hour) % 24, Number(parts.minute), Number(parts.second));
+    return (asUTC - d.getTime()) / 3_600_000;
+  } catch {
+    return null;
+  }
+}
+
+/** 单日查询结果卡片（F3–F6, E4）。
+ * 顶部显示查询地实时时钟（IANA 时区，含 DST），与太阳事件表并用。 */
+export default function ResultCard({ calc, t, lang, tz }: Props) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const nowDate = new Date(now);
+  const tzTime = tz ? fmtTzTime(nowDate, tz) : null;
+  const tzOffset = tz ? tzOffsetHours(nowDate, tz) : null;
   const off = calc.offsetHours;
   const dateStr =
     lang === 'zh'
@@ -46,10 +85,36 @@ export default function ResultCard({ calc, t, lang }: Props) {
         </h2>
         <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">
           {Math.abs(calc.lat).toFixed(4)}°{calc.lat >= 0 ? 'N' : 'S'},&nbsp;
-          {Math.abs(calc.lng).toFixed(4)}°{calc.lng >= 0 ? 'E' : 'W'}&nbsp;·&nbsp;
-          {t('estTz')} {fmtOffset(off)}
+          {Math.abs(calc.lng).toFixed(4)}°{calc.lng >= 0 ? 'E' : 'W'}
         </span>
       </header>
+
+      {/* 查询地实时时钟（IANA 时区，含 DST） */}
+      <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-sky-500/30 bg-sky-500/5 px-4 py-3">
+        <div className="flex items-baseline gap-2">
+          <span className="text-xs text-sky-300/80">🕘 {t('clockThere')}</span>
+          {tzTime !== null ? (
+            <span className="font-mono text-2xl font-bold tabular-nums text-sky-100">{tzTime}</span>
+          ) : (
+            <span className="text-xs text-slate-400">—</span>
+          )}
+        </div>
+        <div className="text-xs text-slate-400">
+          {tz ? (
+            <>
+              <span className="font-mono text-slate-300">{tz}</span>
+              {tzOffset !== null && <span> · {fmtOffset(tzOffset)}（DST 已计入）</span>}
+            </>
+          ) : (
+            <span>
+              {t('estTz')} {fmtOffset(off)} · {t('tzFallbackHint')}
+            </span>
+          )}
+        </div>
+        <div className="ml-auto text-right text-xs text-slate-500">
+          <div>UTC {fmtUtc(nowDate, true)}</div>
+        </div>
+      </div>
 
       {calc.polar === 'day' && (
         <div className="mb-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
