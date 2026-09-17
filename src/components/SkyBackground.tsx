@@ -138,8 +138,8 @@ export default function SkyBackground({ calc, tz, t }: Props) {
         </div>
       </div>
 
-      {/* 天色控制面板（右下角，独立于背景层，确保可点击） */}
-      <div className="fixed right-3 bottom-3 z-40 rounded-xl border border-slate-600/40 bg-slate-900/70 px-3 py-2 text-xs text-slate-200 shadow-lg backdrop-blur-sm">
+      {/* 天色控制面板（右下角悬浮，窄屏自动折叠，不遮挡表单） */}
+      <div className="fixed right-3 bottom-3 z-40 max-w-[calc(100vw-1.5rem)] rounded-xl border border-slate-600/40 bg-slate-900/80 px-3 py-2 text-xs text-slate-200 shadow-lg backdrop-blur-sm">
         <div className="flex flex-wrap items-center justify-end gap-2">
           <button
             type="button"
@@ -148,18 +148,6 @@ export default function SkyBackground({ calc, tz, t }: Props) {
             title={t('skyOffTitle')}
           >
             {skyOff ? `🌤️ ${t('skyOn')}` : `🌃 ${t('skyOff')}`}
-          </button>
-          <button
-            type="button"
-            disabled={skyOff}
-            onClick={() => {
-              setLocked((v) => !v);
-              if (!locked) setLockHour(Math.max(0, Math.min(24, hour)));
-            }}
-            className="rounded-lg px-2 py-1 transition hover:bg-slate-700/60 disabled:opacity-40"
-            title={t('skyLockTitle')}
-          >
-            {locked ? `🔓 ${t('skyUnlock')}` : `🔒 ${t('skyLock')}`}
           </button>
           {locked && !skyOff && (
             <>
@@ -177,6 +165,18 @@ export default function SkyBackground({ calc, tz, t }: Props) {
             </>
           )}
           {skyOff && <span className="text-slate-400">{t('skyOffLabel')}</span>}
+          <button
+            type="button"
+            disabled={skyOff}
+            onClick={() => {
+              setLocked((v) => !v);
+              if (!locked) setLockHour(Math.max(0, Math.min(24, hour)));
+            }}
+            className="rounded-lg px-2 py-1 transition hover:bg-slate-700/60 disabled:opacity-40"
+            title={t('skyLockTitle')}
+          >
+            {locked ? `🔓 ${t('skyUnlock')}` : `🔒 ${t('skyLock')}`}
+          </button>
         </div>
       </div>
     </>

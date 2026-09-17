@@ -100,6 +100,12 @@ export default function App() {
     runQuery(form.latText, form.lngText, form.year, form.month, form.day);
   };
 
+  // 双保险：即使某些环境 submit 事件被拦截，直接 onClick 也能查询
+  const onSubmit2 = (e: React.MouseEvent) => {
+    e.preventDefault();
+    runQuery(form.latText, form.lngText, form.year, form.month, form.day);
+  };
+
   const shiftDate = (delta: number) => {
     const base = new Date(Date.UTC(form.year, form.month - 1, form.day + delta));
     const y = base.getUTCFullYear();
@@ -430,7 +436,8 @@ export default function App() {
             <div className="flex items-end">
               <button
                 type="submit"
-                className="w-full rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2.5 text-sm font-bold text-slate-950 shadow-lg shadow-orange-500/20 transition hover:from-amber-300 hover:to-orange-400"
+                onClick={onSubmit2}
+                className="w-full cursor-pointer rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2.5 text-sm font-bold text-slate-950 shadow-lg shadow-orange-500/20 transition hover:from-amber-300 hover:to-orange-400 active:scale-95"
               >
                 ☀️ {t('query')}
               </button>
