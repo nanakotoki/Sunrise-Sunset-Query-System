@@ -16,6 +16,12 @@ if (-not (Test-Path -LiteralPath $html)) {
   }
 }
 
+# Percent-encode the file URL so the command line passed to Chrome is pure
+# ASCII. A raw non-ASCII path (the user folder contains Chinese) can get
+# mangled when an already-running Chrome instance receives the command,
+# leaving the window open with the page never loaded.
+$url = (New-Object System.Uri($html)).AbsoluteUri
+
 $browsers = @(
   "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
   "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
@@ -27,10 +33,11 @@ $browsers = @(
 
 $browser = $browsers | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 if ($browser) {
-  $url = 'file:///' + ($html -replace '\\', '/')
-  Start-Process -FilePath $browser -ArgumentList @('--app=' + $url)
+  # --new-window with an ASCII URL is the most reliable hand-off to an
+  # already-running browser; --app mode with file URLs proved unreliable.
+  Start-Process -FilePath $browser -ArgumentList @('--new-window', $url)
   exit 0
 }
 
 Write-Host 'Chrome/Edge not found, opening with the default browser...'
-Start-Process -FilePath $html
+Start-Process -FilePath $url
