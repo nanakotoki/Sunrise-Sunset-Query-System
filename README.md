@@ -4,6 +4,20 @@
 
 **计算全部在浏览器本地完成，无后端、无账号、无数据收集。**
 
+## 部署
+
+### GitHub Pages（自动，推荐）
+
+仓库已内置 GitHub Actions 工作流（`.github/workflows/deploy.yml`）：推送 `main` 分支即自动构建并部署。首次使用：
+
+1. 推送代码到 GitHub
+2. 仓库 **Settings → Pages → Source** 选择 **GitHub Actions**
+3. 等待 Actions 跑完，访问 `https://<用户名>.github.io/Sunrise-Sunset-Query-System/`
+
+### 其他静态托管（Vercel / Netlify / Cloudflare Pages）
+
+零配置：构建命令 `npm run build`，输出目录 `dist`。绑定自定义域名在对应平台的域名设置里操作，HTTPS 自动开启（定位功能需要 HTTPS）。
+
 ## 快速开始
 
 **最简单的用法（Windows）**：双击项目根目录的 `start-suntime.bat`，自动用 Chrome/Edge 打开单文件版，不经夸克等默认浏览器关联。需要 GPS 定位按钮时，双击 `start-suntime-gps.bat`（本地服务器版，localhost 下定位可用）。
