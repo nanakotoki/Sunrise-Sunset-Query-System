@@ -28,7 +28,7 @@ export default function YearlyView({ year, lat, lng, offsetHours, t, lang }: Pro
   const PAD = { l: 42, r: 16, t: 16, b: 30 };
   const iw = W - PAD.l - PAD.r;
   const ih = H - PAD.t - PAD.b;
-  const X = (monthFrac: number) => PAD.l + (monthFrac / 12) * iw;
+  const X = (yearFrac: number) => PAD.l + yearFrac * iw;
 
   const { sunrisePath, sunsetPath, dayLenPath, dayLenArea } = useMemo(() => {
     const rise: string[] = [];
@@ -122,7 +122,7 @@ export default function YearlyView({ year, lat, lng, offsetHours, t, lang }: Pro
             );
           })}
           {monthLabels.map((m, i) => (
-            <text key={i} x={X(i + 0.5)} y={H - 10} textAnchor="middle" fontSize="10" fill="#64748b">
+            <text key={i} x={X((i + 0.5) / 12)} y={H - 10} textAnchor="middle" fontSize="10" fill="#64748b">
               {m}
             </text>
           ))}

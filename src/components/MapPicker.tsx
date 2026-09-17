@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import type { T } from '../i18n';
+import { loadTiles } from '../lib/tiles';
 
 interface Props {
   lat: number;
@@ -17,6 +18,7 @@ export default function MapPicker({ lat, lng, onPick, t }: Props) {
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const onPickRef = useRef(onPick);
+  const [tileSource, setTileSource] = useState<string | null>(null);
 
   // 保持回调引用最新，避免挂载时闭包固化（否则改日期后点地图会用旧日期查询）
   useEffect(() => {
@@ -32,10 +34,10 @@ export default function MapPicker({ lat, lng, onPick, t }: Props) {
       worldCopyJump: true,
       attributionControl: false,
     });
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      attribution: '© OpenStreetMap',
-    }).addTo(map);
+    // 瓦片源多源回退：国内 OSM 常年超时，高德/CartoDB 可达
+    loadTiles(map).then((id) => {
+      setTileSource(id);
+    });
     map.on('click', (e: L.LeafletMouseEvent) => {
       onPickRef.current(Math.round(e.latlng.lat * 10000) / 10000, Math.round(e.latlng.wrap().lng * 10000) / 10000);
     });
@@ -71,6 +73,9 @@ export default function MapPicker({ lat, lng, onPick, t }: Props) {
   return (
     <div className="overflow-hidden rounded-xl border border-slate-700/60 bg-slate-900/60">
       <div ref={ref} className="h-64 w-full sm:h-72" role="application" aria-label={t('mapTitle')} />
+      {tileSource === null && (
+        <p className="absolute m-2 rounded-lg bg-slate-900/80 px-2 py-1 text-xs text-slate-400">{t('mapLoading')}</p>
+      )}
       <p className="border-t border-slate-700/60 bg-slate-900/80 px-3 py-2 text-xs text-slate-400">
         💡 {t('mapPick')}
       </p>
