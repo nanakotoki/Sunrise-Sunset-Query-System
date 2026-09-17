@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* Leaflet 必须的样式（必须在 tailwind 之后引入，否则 img{max-width:100%} 预检规则
+   会破坏瓦片布局——瓦片会被拉抻/换行，地图只显示第一块） */
+@import 'leaflet/dist/leaflet.css';
+
 html {
   color-scheme: dark;
 }
@@ -16,6 +20,28 @@ body {
 .leaflet-container {
   background: #0f172a;
   outline: none;
+}
+
+/* 防 Tailwind 预检 img{max-width:100%;height:auto} 破坏瓦片：
+   瓦片尺寸由 Leaflet 内联样式控制，必须解除 max-width 限制 */
+.leaflet-tile {
+  max-width: none !important;
+}
+img.leaflet-tile {
+  width: auto;
+  height: auto;
+}
+.leaflet-pane,
+.leaflet-tile-pane,
+.leaflet-layer,
+.leaflet-tile-container {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.leaflet-tile-container {
+  width: 100%;
+  height: 100%;
 }
 
 .sun-marker {

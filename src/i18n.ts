@@ -37,6 +37,7 @@ const dict = {
     mapPick: '在地图上点击任意位置即可选点',
     mapTitle: '地图选点',
     mapLoading: '地图加载中…（瓦片源不可达时自动切换）',
+    mapFailed: '地图瓦片加载失败（网络受限），可手动输入坐标或搜索城市',
     // 校验
     latRangeErr: '纬度需在 -90 ~ 90 之间',
     lngRangeErr: '经度需在 -180 ~ 180 之间',
@@ -138,6 +139,7 @@ const dict = {
     mapPick: 'Click anywhere on the map to pick a location',
     mapTitle: 'Map picker',
     mapLoading: 'Loading map… (auto-switching tile source)',
+    mapFailed: 'Map tiles failed to load (restricted network). Enter coordinates or search a city instead',
     latRangeErr: 'Latitude must be within -90 ~ 90',
     lngRangeErr: 'Longitude must be within -180 ~ 180',
     numberErr: 'Please enter a valid number',

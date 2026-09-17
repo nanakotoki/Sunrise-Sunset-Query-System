@@ -12,13 +12,23 @@ interface Props {
 
 let icon: L.DivIcon | null = null;
 
-/** Leaflet 地图选点（E2）。点击地图即拾取经纬度；反向跟随输入变化移动标记。 */
+/** 世界边界：拖不出去、缩放不出去。 */
+const WORLD_BOUNDS: L.LatLngBoundsExpression = [
+  [-85, -180],
+  [85, 180],
+];
+
+/** Leaflet 地图选点（E2）。
+ * - 点击地图即拾取经纬度；反向跟随输入变化移动标记
+ * - 瓦片源多源回退（国内 OSM 常年超时）
+ * - maxBounds + minZoom 锁定世界范围，避免拖出灰色虚空
+ */
 export default function MapPicker({ lat, lng, onPick, t }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const onPickRef = useRef(onPick);
-  const [tileSource, setTileSource] = useState<string | null>(null);
+  const [status, setStatus] = useState<'loading' | 'ok' | 'failed'>('loading');
 
   // 保持回调引用最新，避免挂载时闭包固化（否则改日期后点地图会用旧日期查询）
   useEffect(() => {
@@ -31,12 +41,17 @@ export default function MapPicker({ lat, lng, onPick, t }: Props) {
     const map = L.map(ref.current, {
       center: [lat, lng],
       zoom: 4,
-      worldCopyJump: true,
+      minZoom: 2,
+      maxZoom: 18,
+      maxBounds: WORLD_BOUNDS,
+      maxBoundsViscosity: 1.0, // 硬限制：拖到边界立即停住
+      worldCopyJump: false,
       attributionControl: false,
+      zoomControl: true,
     });
     // 瓦片源多源回退：国内 OSM 常年超时，高德/CartoDB 可达
     loadTiles(map).then((id) => {
-      setTileSource(id);
+      setStatus(id ? 'ok' : 'failed');
     });
     map.on('click', (e: L.LeafletMouseEvent) => {
       onPickRef.current(Math.round(e.latlng.lat * 10000) / 10000, Math.round(e.latlng.wrap().lng * 10000) / 10000);
@@ -67,14 +82,27 @@ export default function MapPicker({ lat, lng, onPick, t }: Props) {
     } else {
       markerRef.current.setLatLng([lat, lng]);
     }
-    map.panTo([lat, lng], { animate: true });
+    // 只在标记离屏时平移（避免每次输入变化地图都跳动）
+    const px = map.latLngToContainerPoint([lat, lng]);
+    const size = map.getSize();
+    const margin = 60;
+    if (px.x < margin || px.x > size.x - margin || px.y < margin || px.y > size.y - margin) {
+      map.panTo([lat, lng], { animate: true });
+    }
   }, [lat, lng]);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-700/60 bg-slate-900/60">
+    <div className="relative overflow-hidden rounded-xl border border-slate-700/60 bg-slate-900/60">
       <div ref={ref} className="h-64 w-full sm:h-72" role="application" aria-label={t('mapTitle')} />
-      {tileSource === null && (
-        <p className="absolute m-2 rounded-lg bg-slate-900/80 px-2 py-1 text-xs text-slate-400">{t('mapLoading')}</p>
+      {status === 'loading' && (
+        <div className="pointer-events-none absolute top-2 left-2 rounded-lg bg-slate-900/85 px-2.5 py-1 text-xs text-slate-300">
+          🗺️ {t('mapLoading')}
+        </div>
+      )}
+      {status === 'failed' && (
+        <div className="pointer-events-none absolute top-2 left-2 rounded-lg border border-red-500/40 bg-slate-900/90 px-2.5 py-1 text-xs text-red-300">
+          ⚠️ {t('mapFailed')}
+        </div>
       )}
       <p className="border-t border-slate-700/60 bg-slate-900/80 px-3 py-2 text-xs text-slate-400">
         💡 {t('mapPick')}
