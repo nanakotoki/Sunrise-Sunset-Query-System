@@ -138,22 +138,57 @@ export default function App() {
     }
   }, [searchQuery, lang, t]);
 
+  // IP 定位回退：不需要权限，但只能精确到城市级
+  const onLocateIp = useCallback(async () => {
+    setLocating(true);
+    setSearchError('');
+    try {
+      const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(6000) });
+      if (!res.ok) throw new Error('ipapi fail');
+      const d = (await res.json()) as { latitude?: number; longitude?: number; city?: string; region?: string; country_name?: string };
+      if (typeof d.latitude === 'number' && typeof d.longitude === 'number') {
+        const place = [d.city, d.region, d.country_name].filter(Boolean).join(', ');
+        setSearchQuery(place);
+        setPlace(d.latitude, d.longitude);
+      } else {
+        setSearchError(t('locateUnavailable'));
+      }
+    } catch {
+      setSearchError(t('locateIpFailed'));
+      setLocating(false);
+      return;
+    }
+    setLocating(false);
+  }, [t]);
+
   const onLocate = () => {
     if (!navigator.geolocation) {
       setSearchError(t('locateFailed'));
       return;
     }
+    // file:// / http:// 下浏览器会静默禁用定位，提前给出可行动的提示
+    if (location.protocol === 'file:') {
+      setSearchError(t('locateFileHint'));
+      return;
+    }
     setLocating(true);
+    setSearchError('');
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLocating(false);
         setPlace(clampNum(pos.coords.latitude, -90, 90), clampNum(pos.coords.longitude, -180, 180));
       },
-      () => {
+      (err) => {
         setLocating(false);
-        setSearchError(t('locateFailed'));
+        if (err.code === err.PERMISSION_DENIED) {
+          setSearchError(t('locateDenied'));
+        } else if (err.code === err.POSITION_UNAVAILABLE || err.code === err.TIMEOUT) {
+          setSearchError(t('locateUnavailable'));
+        } else {
+          setSearchError(t('locateFailed'));
+        }
       },
-      { timeout: 10000 },
+      { timeout: 10000, maximumAge: 300000, enableHighAccuracy: false },
     );
   };
 
@@ -271,6 +306,15 @@ export default function App() {
                 className="rounded-xl border border-slate-600 px-4 py-2 text-sm text-slate-200 transition hover:border-sky-400 hover:text-sky-300 disabled:opacity-50"
               >
                 {locating ? t('locating') : `📍 ${t('myLocation')}`}
+              </button>
+              <button
+                type="button"
+                onClick={onLocateIp}
+                disabled={locating}
+                title={t('locateIpTitle')}
+                className="rounded-xl border border-slate-600 px-4 py-2 text-sm text-slate-200 transition hover:border-sky-400 hover:text-sky-300 disabled:opacity-50"
+              >
+                {locating ? t('locating') : `📡 ${t('myLocationIp')}`}
               </button>
             </div>
             {searchError && <p className="mt-1.5 text-xs text-red-400">{searchError}</p>}

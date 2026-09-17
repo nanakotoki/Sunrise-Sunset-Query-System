@@ -6,6 +6,8 @@
 
 ## 快速开始
 
+**最简单的用法（Windows）**：双击项目根目录的 `启动SunTime.bat`，自动用 Chrome/Edge 打开单文件版，不经夸克等默认浏览器关联。需要 GPS 定位按钮时，双击 `启动SunTime-带定位.bat`（本地服务器版，localhost 下定位可用）。
+
 ```bash
 npm install
 npm run dev        # 开发服务器 http://localhost:5173
@@ -24,9 +26,18 @@ npm run preview         # 本地预览 dist/
 | 类别 | 功能 |
 |------|------|
 | 必做 (MVP) | 经纬度输入与校验 · 年/月/日选择(1900–2100) · 日出/日落/太阳正午 · 昼长(时:分:秒) · 经度估算时区 + UTC 双时间 · 极昼/极夜提示 · 响应式布局 |
-| 增强 | 地名搜索(Nominatim) · 地图选点(Leaflet) · 全年视图(SVG 曲线 + 表格) · 民用/航海/天文三种暮光 + 黄金时刻 · 一键定位 · 复制文本 / 导出 CSV(单日 + 全年) · 中英文切换 · 动态晨昏背景(随本机/查询地时间平滑渐变，极昼极夜联动，可锁定预览) |
+| 增强 | 地名搜索（离线城市库 + Open-Meteo/Photon/Nominatim 三源回退）· 地图选点(Leaflet) · 全年视图(SVG 曲线 + 表格) · 民用/航海/天文三种暮光 + 黄金时刻 · 一键定位 + IP 定位回退 · 复制文本 / 导出 CSV(单日 + 全年) · 中英文切换 · 动态晨昏背景(随本机/查询地时间平滑渐变，极昼极夜联动，可锁定预览) |
 
 技术栈：React 18 + TypeScript + Vite + Tailwind CSS v4 + SunCalc + Leaflet。
+
+## 地名搜索策略
+
+优先离线匹配（内嵌 477 城市：中国大陆全部地级市/州/盟 + 港澳台 + 全球主要城市 + 极地代表点，支持中文/拼音/英文/全角输入，断网可用）；未命中时依次尝试 Open-Meteo → Photon → Nominatim（各有 6 秒超时，任一成功即返回）；全部失败时回退本地模糊匹配。城市库由 `scripts/gen-city-db.mjs` 生成，验证：`npm run verify:citydb`（未配置 npm script 时直接 `node scripts/verify-city-db.mjs`）。
+
+## 定位说明
+
+- **GPS 定位**：需要浏览器安全上下文（HTTPS 或 localhost）。`file://` 双击打开时浏览器会禁用定位——此时用 `启动SunTime-带定位.bat`；权限被拒时按页面提示在地址栏重新授权
+- **IP 定位**：不需任何权限，精度城市级，作为 GPS 不可用时的回退
 
 ## 时区说明
 

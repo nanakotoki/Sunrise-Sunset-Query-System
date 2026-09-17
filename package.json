@@ -10,7 +10,8 @@
     "build:single": "tsc && vite build --config vite.single.config.ts",
     "preview": "vite preview",
     "verify:solar": "node scripts/verify-solar.mjs",
-    "verify:skyclock": "node scripts/verify-skyclock.mjs"
+    "verify:skyclock": "node scripts/verify-skyclock.mjs",
+    "verify:citydb": "node scripts/verify-city-db.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
