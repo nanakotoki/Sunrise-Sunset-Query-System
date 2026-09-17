@@ -6,7 +6,9 @@
 
 ## 快速开始
 
-**最简单的用法（Windows）**：双击项目根目录的 `启动SunTime.bat`，自动用 Chrome/Edge 打开单文件版，不经夸克等默认浏览器关联。需要 GPS 定位按钮时，双击 `启动SunTime-带定位.bat`（本地服务器版，localhost 下定位可用）。
+**最简单的用法（Windows）**：双击项目根目录的 `start-suntime.bat`，自动用 Chrome/Edge 打开单文件版，不经夸克等默认浏览器关联。需要 GPS 定位按钮时，双击 `start-suntime-gps.bat`（本地服务器版，localhost 下定位可用）。
+
+> 启动器脚本（.bat/.ps1）内容必须保持纯 ASCII：cmd 按 GBK 解析 .bat，PowerShell 对无 BOM 文件按 ANSI 解析，中文会破坏命令导致窗口一闪而过。
 
 ```bash
 npm install
@@ -36,7 +38,7 @@ npm run preview         # 本地预览 dist/
 
 ## 定位说明
 
-- **GPS 定位**：需要浏览器安全上下文（HTTPS 或 localhost）。`file://` 双击打开时浏览器会禁用定位——此时用 `启动SunTime-带定位.bat`；权限被拒时按页面提示在地址栏重新授权
+- **GPS 定位**：需要浏览器安全上下文（HTTPS 或 localhost）。`file://` 双击打开时浏览器会禁用定位——此时用 `start-suntime-gps.bat`；权限被拒时按页面提示在地址栏重新授权
 - **IP 定位**：不需任何权限，精度城市级，作为 GPS 不可用时的回退
 
 ## 时区说明
